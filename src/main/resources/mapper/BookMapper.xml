@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.mapper.BookMapper">
+    <resultMap id="BaseBookMap" type="Book">
+        <id property="id" column="b_id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="author" column="author"/>
+    </resultMap>
+    <resultMap id="BookMap" type="Book" extends="BaseBookMap">
+        <collection property="chapterList"
+                    resultMap="com.mapper.ChapterMapper.BaseChapterMap"
+                    ofType="Chapter" />
+    </resultMap>
+    <select id="find" resultMap="BookMap">
+		SELECT
+			b.id b_id,
+			b.title b_title,
+			b.summary,
+			b.author,
+			c.id,
+			c.title,
+			c.read_count,
+			c.reply_count,
+			c.words
+		FROM
+			 book b
+			INNER JOIN chapter c  ON c.book_id = b.id
+	</select>
+</mapper>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--配置数据库连接-->
+    <bean class="com.alibaba.druid.pool.DruidDataSource" id="dataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url"
+                  value="jdbc:mysql://localhost:3306/book?useSSL=false&amp;useUnicode=true&amp;characterEncoding=utf8&amp;zeroDateTimeBehavior=convertToNull"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+    <!--    配置MyBatis连接数据库-->
+    <bean class="com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean"
+          id="sessionFactoryBean">
+        <!-- 指定数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 加载所有的mapper映射文件-->
+        <property name="mapperLocations" value="classpath:mapper/**/*.xml"/>
+        <!-- 为com.entity包下的所有类指定别名-->
+        <property name="typeAliasesPackage" value="com.pojo.entity"/>
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+
+        <!--        配置分页插件-->
+        <property name="plugins">
+            <bean class="com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor">
+                <property name="countSqlParser" ref="countSqlParser"/>
+            </bean>
+        </property>
+
+    </bean>
+    <!--    开启count优化-->
+    <bean id="countSqlParser"
+          class="com.baomidou.mybatisplus.extension.plugins.pagination.optimize.JsqlParserCountOptimize">
+        <!--        优化连接-->
+        <property name="optimizeJoin" value="true"/>
+    </bean>
+    <!--    扫描mapper映射-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" id="configurer">
+        <property name="basePackage" value="com.mapper"/>
+        <property name="sqlSessionFactoryBeanName" value="sessionFactoryBean"/>
+    </bean>
+
+    <!--    配置事务管理器-->
+    <bean class="org.springframework.jdbc.datasource.DataSourceTransactionManager" id="transactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!--    开启注解式事务支持-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+    <!--    扫描注解  1、bean注解  2.事务注解-->
+    <context:component-scan base-package="com.service"/>
+    <!--    开启切面扫描功能-->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+</beans>

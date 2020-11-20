@@ -1,0 +1,100 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>开始使用layui</title>
+    <link rel="stylesheet" href="/static/lib/layui-v2.5.5/css/layui.css" media="all">
+</head>
+<body>
+<div class="layui-container">
+    <div class="layui-row">
+
+        <div class="layui-card layui-bg-gray" >
+            <div class="layui-card-header"><b>编辑小说</b></div>
+            <div  class="layui-card-body">
+            <form class="layui-form" method="post" enctype="multipart/form-data"  action="/users">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说标题：</label>
+                    <div class="layui-input-block">
+                        <input type="text" required lay-verify="required" name="title" placeholder="请输入小说标题：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说作者：</label>
+                    <div class="layui-input-block">
+                        <input type="text" required  lay-verify="required" name="author" placeholder="请输入小说作者：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">章节数目:</label>
+                    <div class="layui-input-block">
+                        <input type="number" required lay-verify="required|number" name="chapter_count" placeholder="请输入章节数目：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">连载：</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="sex" value="1" title="连载中">
+                        <input type="radio" name="sex" value="2" title="已完结" checked>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="formDemo">更新</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/lib/layui-v2.5.5/layui.all.js" charset="utf-8"></script>
+
+<script>
+    layui.use(['form','layer'], function(){
+        var form = layui.form;
+        var layer = layui.layer;
+        var $=layui.jquery;
+        //
+        $.ajax({
+            type:"get",
+            dataType: 'json',
+            url:"/categories",
+            success:function(data) {
+                console.log(data)
+                var data=data.data;
+                var str="<option >全部</option>";
+                for(var i of data){
+                    //组装数据
+                    str+=`<option value='${i.id}'>${i.name}</option>`;
+                }
+                //jquery赋值方式
+                $("#selectId").html(str);
+                //重新渲染生效
+                form.render();
+            }
+        });
+
+        form.on('submit(formDemo)',function (data) {
+            $.post("/users",data.field,function (msg) {
+                if (msg.success==='success') {
+                    //重新加载表格数据
+                    parent.layui.table.reload("data-tab");
+                    parent.layer.msg("添加成功");
+                    //获取弹出窗口的id
+                    var frameIndex = parent.layer.getFrameIndex(window.name);
+                    //关闭弹出窗口
+                    parent.layer.close(frameIndex);
+                }else {
+                    parent.layer.msg("添加失败！");
+                }
+            });
+            return false;
+        })
+    });
+</script>
+</body>
+</html>

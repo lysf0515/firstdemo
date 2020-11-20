@@ -1,0 +1,169 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>开始使用layui</title>
+    <link rel="stylesheet" href="/static/lib/layui-v2.5.5/css/layui.css" media="all">
+</head>
+<body>
+<div class="layui-container">
+    <div class="layui-row">
+
+        <div class="layui-card layui-bg-gray" >
+            <div class="layui-card-header"><b>增加小说</b></div>
+            <div  class="layui-card-body">
+            <form class="layui-form" method="post" enctype="multipart/form-data"  action="/users">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说标题：</label>
+                    <div class="layui-input-block">
+                        <input type="text" required lay-verify="required" name="title" placeholder="请输入小说标题：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说作者：</label>
+                    <div class="layui-input-block">
+                        <input type="text" required  lay-verify="required" name="author" placeholder="请输入小说作者：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">章节数目:</label>
+                    <div class="layui-input-block">
+                        <input type="number" required lay-verify="required|number" name="chapter_count" placeholder="请输入章节数目：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说内容：</label>
+                    <div class="layui-input-block">
+                        <textarea  placeholder="请输入小说内容：" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">小说简介：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="summary"   placeholder="请输入小说简介：" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">连载：</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="sex" value="1" title="连载中">
+                        <input type="radio" name="sex" value="2" title="已完结" checked>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">修改头像</label>
+                    <div class="layui-input-inline uploadHeadImage">
+                        <div class="layui-upload-drag" id="headImg">
+                            <i class="layui-icon"></i>
+                            <p>点击上传图片，或将图片拖拽到此处</p>
+                        </div>
+                    </div>
+                    <div class="layui-input-inline">
+                        <div class="layui-upload-list">
+<!--                            <img class="layui-upload-img headImage" src="http://t.cn/RCzsdCq" id="demo1">-->
+                            <p id="demoText"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">分类：</label>
+                    <div class="layui-input-block">
+                        <select name="type" id="selectId" class="layui-select" >
+
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                    </div>
+                </div>
+            </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/lib/layui-v2.5.5/layui.all.js" charset="utf-8"></script>
+
+<script>
+    layui.use(['form','layer','upload'], function(){
+        var form = layui.form;
+        var layer = layui.layer;
+        var $=layui.jquery;
+        var upload=layui.upload;
+        //
+        $.ajax({
+            type:"get",
+            dataType: 'json',
+            url:"/categories",
+            success:function(data) {
+                console.log(data)
+                var data=data.data;
+                var str="<option >全部</option>";
+                for(var i of data){
+                    //组装数据
+                    str+=`<option value='${i.id}'>${i.name}</option>`;
+                }
+                //jquery赋值方式
+                $("#selectId").html(str);
+                //重新渲染生效
+                form.render();
+            }
+        });
+
+        form.on('submit(formDemo)',function (data) {
+            $.post("/users",data.field,function (msg) {
+                if (msg.success==='success') {
+                    //重新加载表格数据
+                    parent.layui.table.reload("data-tab");
+                    parent.layer.msg("添加成功");
+                    //获取弹出窗口的id
+                    var frameIndex = parent.layer.getFrameIndex(window.name);
+                    //关闭弹出窗口
+                    parent.layer.close(frameIndex);
+                }else {
+                    parent.layer.msg("添加失败！");
+                }
+            });
+            return false;
+        })
+
+        var uploadInst = upload.render({
+            elem: '#headImg'
+            , url: '/upload/headImg'
+            , size: 500
+            , before: function (obj) {
+                //预读本地文件示例，不支持ie8
+                obj.preview(function (index, file, result) {
+                    $('#demo1').attr('src', result); //图片链接（base64）
+                });
+            }
+            , done: function (res) {
+                //如果上传失败
+                if (res.code > 0) {
+                    return layer.msg('上传失败');
+                }
+                //上传成功
+                //打印后台传回的地址: 把地址放入一个隐藏的input中, 和表单一起提交到后台, 此处略..
+                /*   console.log(res.data.src);*/
+                window.parent.uploadHeadImage(res.data.src);
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #8f8f8f;">上传成功!!!</span>');
+            }
+            , error: function () {
+                //演示失败状态，并实现重传
+                var demoText = $('#demoText');
+                demoText.html('<span style="color: #FF5722;">上传失败</span> <a class="layui-btn layui-btn-mini demo-reload">重试</a>');
+                demoText.find('.demo-reload').on('click', function () {
+                    uploadInst.upload();
+                });
+            }
+        });
+        // element.init();
+    });
+</script>
+</body>
+</html>
